@@ -1,30 +1,42 @@
+import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useUsers } from '../store/UsersContext';
 
 export const PostFilter = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const users = useUsers();
-  const [query, setQuery] = useState('');
-  const [userId, setUserId] = useState(0);
-  const [letters, setLetters] = useState<string[]>([]);
-  
+  const query = searchParams.get('query') || '';
+  const userId = +(searchParams.get('userId') || 0);
+  const letters = searchParams.getAll('letters') || [];
+
   function handlePageChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    setUserId(+event.target.value);
+    const params = new URLSearchParams(searchParams);
+    params.set('userId', event.target.value)
+    setSearchParams(params);
   }
 
   function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setQuery(event.target.value);
+    const params = new URLSearchParams(searchParams);
+    params.set('query', event.target.value);
+    setSearchParams(params);
   }
 
   function toggleLetter(ch: string) {
-    setLetters(currentLetters => currentLetters.includes(ch)
-      ? currentLetters.filter(letter => letter !== ch)
-      : [...currentLetters, ch]
-    );
+    const params = new URLSearchParams(searchParams);
+    const newLetters = letters.includes(ch)
+      ? letters.filter(letter => letter !== ch)
+      : [...letters, ch];
+
+    params.delete('letters');
+    newLetters.forEach(letter => params.append('letters', letter));
+    setSearchParams(params);
   }
 
   function clearLetters() {
-    setLetters([]);
+    const params = new URLSearchParams(searchParams);
+    params.delete('letters');
+    setSearchParams(params);
   }
 
   return (
