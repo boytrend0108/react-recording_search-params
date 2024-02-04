@@ -1,7 +1,29 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import React from 'react';
 import { useUsers } from '../store/UsersContext';
+
+type Param = string | number;
+type Params = {
+  [key: string]: Param[] | Param | null;
+}
+
+function getSearchWith(params: Params, search?: string | URLSearchParams) {
+  const newParams = new URLSearchParams(search);
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null) {
+      newParams.delete(key);
+    } else if (Array.isArray(value)) {
+      newParams.delete(key);
+      value.forEach(item => newParams.append(key, item.toString()));
+    } else {
+      newParams.set(key, value.toString())
+    }
+  }
+
+  return newParams.toString();
+}
 
 export const PostFilter = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -10,34 +32,19 @@ export const PostFilter = () => {
   const userId = +(searchParams.get('userId') || 0);
   const letters = searchParams.getAll('letters') || [];
 
+  function setSearchWith(params: any) {
+    const search = getSearchWith(params, searchParams);
+    setSearchParams(search);
+  }
+
   function handlePageChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const params = new URLSearchParams(searchParams);
-    params.set('userId', event.target.value)
-    setSearchParams(params);
+    setSearchWith({ userId: +event.target.value || null })
   }
 
   function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const params = new URLSearchParams(searchParams);
-    params.set('query', event.target.value);
-    setSearchParams(params);
+    setSearchWith({ query: event.target.value || null })
   }
 
-  function toggleLetter(ch: string) {
-    const params = new URLSearchParams(searchParams);
-    const newLetters = letters.includes(ch)
-      ? letters.filter(letter => letter !== ch)
-      : [...letters, ch];
-
-    params.delete('letters');
-    newLetters.forEach(letter => params.append('letters', letter));
-    setSearchParams(params);
-  }
-
-  function clearLetters() {
-    const params = new URLSearchParams(searchParams);
-    params.delete('letters');
-    setSearchParams(params);
-  }
 
   return (
     <div className="block">
@@ -65,24 +72,29 @@ export const PostFilter = () => {
 
       <div className="buttons">
         {'aeoui'.split('').map(letter => (
-          <button
+          <Link
             key={letter}
-            onClick={() => toggleLetter(letter)}
+            to={{
+              search: getSearchWith({
+                letters: letters.includes(letter)
+                  ? letters.filter(item => item !== letter)
+                  : [...letters, letter],
+              }, searchParams), 
+            }}
             className={classNames('button', {
               'is-info': letters.includes(letter),
             })}
           >
             {letter}
-          </button>
+          </Link>
         ))}
 
-        <button
-          onClick={clearLetters}
+        <Link
+          to={{ search: getSearchWith({ letters: null }, searchParams) }}
           className="button"
-          disabled={letters.length === 0}
         >
           Clear
-        </button>
+        </Link>
       </div>
     </div>
   )
