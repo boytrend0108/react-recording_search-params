@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import { Post } from '../types';
 import { getPost } from '../services/post';
@@ -9,6 +9,7 @@ import { PostsContext } from '../store/PostsContext';
 import { useUsers } from '../store/UsersContext';
 
 export const PostDetailsPage = () => {
+  const {state} = useLocation();
   // #region posts
   const { updatePost } = useContext(PostsContext);
   const users = useUsers();
@@ -23,7 +24,7 @@ export const PostDetailsPage = () => {
   const navigate = useNavigate();
 
   function goBack() {
-    navigate('..')
+    navigate({pathname: '..', search: state?.search})
   }
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React from 'react';
 import { useUsers } from '../store/UsersContext';
 
 export const PostFilter = () => {
